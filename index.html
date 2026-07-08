@@ -696,13 +696,14 @@ footer {
     </footer>
 </div>
 
-<script src="https://unpkg.com/pdfjs-dist@4.5.136/legacy/build/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.js"></script>
+<script src="js/pdf.min.js"></script>
+<script src="js/vis-network.min.js"></script>
+<link rel="stylesheet" href="css/vis-network.min.css">
 
 <script>
 // 配置 PDF.js worker
 if (typeof pdfjsLib !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.5.136/legacy/build/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdf.worker.min.js';
 }
 const typeColors = {
     Concept: { color: '#4A90D9', bg: '#E3F2FD', border: '#1E88E5', label: '概念' },
