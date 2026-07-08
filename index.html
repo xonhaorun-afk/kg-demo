@@ -695,10 +695,14 @@ footer {
     </footer>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.5.136/legacy/build/pdf.min.js"></script>
+<script src="https://unpkg.com/pdfjs-dist@4.5.136/legacy/build/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.js"></script>
 
 <script>
+// 配置 PDF.js worker
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.5.136/legacy/build/pdf.worker.min.js';
+}
 const typeColors = {
     Concept: { color: '#4A90D9', bg: '#E3F2FD', border: '#1E88E5', label: '概念' },
     Theory:  { color: '#FF8C00', bg: '#FFF3E0', border: '#FF6F00', label: '理论' },
@@ -787,6 +791,11 @@ function extractTriplesRule(text) {
 }
 
 async function extractTextFromPDF(file) {
+    // 检查 pdfjsLib 是否可用
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF解析库加载失败，请检查网络连接或尝试刷新页面。如果问题持续，建议将PDF转换为TXT格式后上传。');
+    }
+    
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -801,10 +810,10 @@ async function extractTextFromPDF(file) {
                 }
                 resolve(text);
             } catch (err) {
-                reject(err);
+                reject(new Error('PDF解析失败: ' + err.message));
             }
         };
-        reader.onerror = reject;
+        reader.onerror = () => reject(new Error('文件读取失败'));
         reader.readAsArrayBuffer(file);
     });
 }
