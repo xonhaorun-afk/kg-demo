@@ -576,6 +576,7 @@ footer {
             <div class="upload-icon">📄</div>
             <h2>上传你的书籍</h2>
             <p class="upload-hint">支持 .txt 和 .pdf 格式</p>
+            <div id="pdfLoadStatus" style="display:none; margin-bottom:15px; padding:10px; border-radius:8px; font-size:13px;"></div>
 
             <div class="form-group">
                 <label for="apiKey">🔑 DeepSeek API Key</label>
@@ -1220,12 +1221,38 @@ const fileName = document.getElementById('fileName');
 const submitBtn = document.getElementById('submitBtn');
 const uploadForm = document.getElementById('uploadForm');
 
+// 页面加载后检测 PDF 库状态
+window.addEventListener('load', function() {
+    const statusEl = document.getElementById('pdfLoadStatus');
+    if (typeof pdfjsLib === 'undefined') {
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#FFEBEE';
+        statusEl.style.color = '#C62828';
+        statusEl.style.borderLeft = '4px solid #C62828';
+        statusEl.innerHTML = '⚠️ <b>PDF解析库加载失败</b><br>您的网络可能无法访问外部CDN。建议：将PDF转换为TXT格式后上传，或使用演示模式。';
+    } else {
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#E8F5E9';
+        statusEl.style.color = '#2E7D32';
+        statusEl.style.borderLeft = '4px solid #2E7D32';
+        statusEl.innerHTML = '✅ PDF解析库加载成功，支持 .pdf 和 .txt 格式';
+    }
+});
+
 fileInput.addEventListener('change', function() {
     if (this.files.length > 0) {
         const file = this.files[0];
         const sizeKB = (file.size / 1024).toFixed(1);
         fileName.textContent = `📎 ${file.name} (${sizeKB} KB)`;
         submitBtn.disabled = false;
+        
+        // 如果选择了PDF但库未加载，提示用户
+        if (file.name.toLowerCase().endsWith('.pdf') && typeof pdfjsLib === 'undefined') {
+            alert('PDF解析库未加载，无法解析PDF文件。请将PDF转换为TXT格式后上传，或检查网络连接后刷新页面。');
+            fileInput.value = '';
+            fileName.textContent = '';
+            submitBtn.disabled = true;
+        }
     } else {
         fileName.textContent = '';
         submitBtn.disabled = true;
