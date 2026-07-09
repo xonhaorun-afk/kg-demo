@@ -994,6 +994,100 @@ const typeColors = {
     Scholar: { color: '#228B22', bg: '#E8F5E9', border: '#1B5E20', label: '学者' },
 };
 
+// 预设大概念词典 - 基于Howard & Carey, O'Neil等经典比较政治学教材
+const PRESET_CATEGORIES = {
+    "国家与权力": {
+        color: "#1E88E5",
+        icon: "🏛️",
+        description: "国家的本质、类型与权力运作",
+        keywords: ["国家", "权力", "政府", "统治", "主权", "政体", "威权", "权威", "政权", "专制", "强制"],
+        subcategories: {
+            "国家理论": ["国家理论", "国家权力双重维度理论", "国家中心主义", "国家回归", "国家自主性", "国家能力"],
+            "权力类型": ["专制权力", "基础性权力", "权力制衡", "权力分配", "国家暴力", "强制能力"],
+            "国家能力": ["征税能力", "维持秩序能力", "公共服务能力", "国家渗透能力", "汲取能力"]
+        }
+    },
+    "民主与政体": {
+        color: "#FF6F00",
+        icon: "🗳️",
+        description: "民主的理论、形式与转型",
+        keywords: ["民主", "选举", "代表", "政体", "共和", "宪政", "代议", "投票", "竞选", "选民"],
+        subcategories: {
+            "民主理论": ["多元民主", "精英民主", "参与式民主", "协商民主", "自由民主", "实质民主", "程序民主"],
+            "政体类型": ["总统制", "议会制", "半总统制", "混合政体", "威权政体", "极权政体", "民主政体"],
+            "民主化": ["民主转型", "民主巩固", "民主崩溃", "民主回潮", "第三波民主化", "民主化浪潮"]
+        }
+    },
+    "政治过程与行为": {
+        color: "#228B22",
+        icon: "👥",
+        description: "政治参与、利益表达与决策过程",
+        keywords: ["政治过程", "政治参与", "利益", "政党", "竞选", "投票", "政治行为", "社会运动", "公民"],
+        subcategories: {
+            "政治参与": ["公民参与", "投票行为", "政治社会化", "政治冷漠", "政治效能感"],
+            "政党与选举": ["政党体系", "政党制度", "选举竞争", "竞选策略", "政治竞争", "政治录用"],
+            "利益集团与公民社会": ["利益集团", "游说", "公民社会", "非政府组织", "社会运动", "政治表达"]
+        }
+    },
+    "政治文化与认同": {
+        color: "#9C27B0",
+        icon: "🌐",
+        description: "政治价值观、意识形态与社会认同",
+        keywords: ["文化", "认同", "民族", "宗教", "意识形态", "价值", "信仰", "传统", "习俗", "民粹"],
+        subcategories: {
+            "政治文化": ["政治文化", "政治价值观", "公民文化", "政治社会化", "政治态度"],
+            "民族与宗教": ["民族主义", "族群政治", "宗教政治", "世俗化", "政教关系", "民族国家"],
+            "意识形态": ["自由主义", "保守主义", "社会主义", "民族主义", "民粹主义"]
+        }
+    },
+    "政治制度与治理": {
+        color: "#00ACC1",
+        icon: "⚖️",
+        description: "制度安排、治理结构与公共政策",
+        keywords: ["制度", "治理", "政策", "法律", "宪法", "法治", "司法", "行政", "立法", "官僚", "联邦"],
+        subcategories: {
+            "正式制度": ["宪法", "法律体系", "司法独立", "官僚制", "联邦制", "单一制", "中央与地方"],
+            "治理与政策": ["良治", "治理能力", "公共政策", "政策制定", "政策执行", "腐败", "透明度"]
+        }
+    },
+    "政治发展与变迁": {
+        color: "#E91E63",
+        icon: "📈",
+        description: "政治演进、现代化与历史比较",
+        keywords: ["发展", "变迁", "现代化", "转型", "改革", "革命", "演化", "进步", "发展型", "依附"],
+        subcategories: {
+            "政治发展理论": ["现代化理论", "依附理论", "世界体系理论", "发展型国家", "后发展"],
+            "政治转型": ["政治改革", "革命", "社会运动", "政权更替", "政治稳定"]
+        }
+    },
+    "比较方法论": {
+        color: "#607D8B",
+        icon: "🔬",
+        description: "研究方法、案例选择与理论检验",
+        keywords: ["比较", "方法", "案例", "分析", "变量", "假设", "实证", "定性", "定量", "统计", "过程追踪"],
+        subcategories: {
+            "研究方法": ["比较方法", "案例研究", "定量分析", "定性分析", "混合方法", "大样本分析"],
+            "研究设计": ["变量控制", "假设检验", "案例选择", "过程追踪", "反事实分析"]
+        }
+    }
+};
+
+// 学者-大类关联映射
+const SCHOLAR_CATEGORY_MAP = {
+    "韦伯": "国家与权力", "马克斯·韦伯": "国家与权力", "Weber": "国家与权力",
+    "曼": "国家与权力", "迈克尔·曼": "国家与权力", "Mann": "国家与权力",
+    "达尔": "民主与政体", "罗伯特·达尔": "民主与政体", "Dahl": "民主与政体",
+    "熊彼特": "民主与政体", "约瑟夫·熊彼特": "民主与政体", "Schumpeter": "民主与政体",
+    "亨廷顿": "政治发展与变迁", "Huntington": "政治发展与变迁",
+    "阿尔蒙德": "政治文化与认同", "Almond": "政治文化与认同",
+    "维巴": "政治文化与认同", "Verba": "政治文化与认同",
+    "李普塞特": "民主与政体", "Lipset": "民主与政体",
+    "萨托利": "民主与政体", "Sartori": "民主与政体",
+    "达尔文": "比较方法论",
+    "普沃斯基": "民主与政体", "Przeworski": "民主与政体",
+    "林兹": "民主与政体", "Linz": "民主与政体"
+};
+
 const levelColors = ['#667eea', '#4A90D9', '#2196F3', '#1E88E5', '#1976D2'];
 
 const ENTITY_TYPES = {
@@ -1017,6 +1111,159 @@ function smartClassifyEntity(name) {
     if (/学者|家|先生|韦伯|曼|斯基|科夫|尔|达尔|熊彼特/.test(name)) return "Scholar";
     if (/理论|主义|视角|学说|范式/.test(name)) return "Theory";
     return "Concept";
+}
+
+// 关键词模糊匹配 - 找到概念所属大类和子分类
+function classifyToCategory(name) {
+    if (!name) return { category: null, subcategory: null };
+    
+    // 1. 学者特殊处理：按学者-大类映射表
+    if (smartClassifyEntity(name) === "Scholar") {
+        for (const [keyword, category] of Object.entries(SCHOLAR_CATEGORY_MAP)) {
+            if (name.includes(keyword)) {
+                return { category, subcategory: null };
+            }
+        }
+        return { category: null, subcategory: null };
+    }
+    
+    // 2. 优先精确匹配预设实体
+    for (const [category, info] of Object.entries(PRESET_CATEGORIES)) {
+        for (const [subcat, items] of Object.entries(info.subcategories)) {
+            if (items.includes(name)) {
+                return { category, subcategory: subcat };
+            }
+        }
+    }
+    
+    // 3. 关键词模糊匹配
+    let bestMatch = { category: null, subcategory: null, score: 0 };
+    for (const [category, info] of Object.entries(PRESET_CATEGORIES)) {
+        // 先按关键词打分
+        for (const keyword of info.keywords) {
+            if (name.includes(keyword)) {
+                const score = keyword.length; // 关键词越长，权重越高
+                if (score > bestMatch.score) {
+                    bestMatch = { category, subcategory: null, score };
+                }
+            }
+        }
+        // 再按子分类精确词匹配
+        for (const [subcat, items] of Object.entries(info.subcategories)) {
+            for (const item of items) {
+                if (name.includes(item) || item.includes(name)) {
+                    const score = item.length + 10; // 子分类匹配权重更高
+                    if (score > bestMatch.score) {
+                        bestMatch = { category, subcategory: subcat, score };
+                    }
+                }
+            }
+        }
+    }
+    
+    if (bestMatch.category) {
+        return { category: bestMatch.category, subcategory: bestMatch.subcategory };
+    }
+    
+    return { category: null, subcategory: null };
+}
+
+// 参考文献识别
+function isReferenceEntity(name) {
+    if (!name) return false;
+    
+    const referencePatterns = [
+        /出版社$/,
+        /\d{4}年.*版$/,
+        /译$|等译$|著$/,
+        /University\s+Press/i,
+        /^[A-Z][a-z]+\s+Press$/i,
+        /Publishers?$/i,
+        /Journal\s+of/i,
+        /Quarterly/i,
+        /Review/i,
+        /\d{4}\)\.\s*[A-Z]/,  // (2020). X
+        /ISBN/i,
+        /doi\.org/i,
+        /^pp?\.\s*\d+/i,
+        /Vol\.\s*\d+/i,
+        /No\.\s*\d+/i,
+        /[\u4e00-\u9fa5]{2,4}\s*\(\d{4}\)/,  // 作者(2020)
+        /^[A-Z][a-z]+,\s+[A-Z]\.[\s,]*\(/,  // Smith, J. (
+    ];
+    
+    for (const pattern of referencePatterns) {
+        if (pattern.test(name)) return true;
+    }
+    
+    // 检查是否包含典型的参考文献标识词
+    const refKeywords = ["出版社", "Press", "Publishers", "Journal", "Quarterly", "Review", "Studies"];
+    for (const kw of refKeywords) {
+        if (name.includes(kw)) return true;
+    }
+    
+    return false;
+}
+
+// LLM 兜底分类 - 当关键词匹配失败时调用
+async function llmClassifyConcepts(apiKey, unclassifiedConcepts) {
+    if (unclassifiedConcepts.length === 0 || !apiKey) return {};
+    
+    const categoryNames = Object.keys(PRESET_CATEGORIES).join("、");
+    const conceptList = unclassifiedConcepts.map(c => `"${c}"`).join("、");
+    
+    const prompt = `你是一位比较政治学专家。请将以下概念分类到对应的大类下。
+
+可用的大类：${categoryNames}
+
+待分类概念：${conceptList}
+
+要求：
+1. 每个概念归入一个最合适的大类
+2. 如果都不合适，归入"其他"
+3. 严格按JSON格式输出
+
+输出格式：
+{
+  "概念1": "大类名",
+  "概念2": "其他"
+}`;
+
+    try {
+        const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0.1,
+                max_tokens: 1000,
+                response_format: { type: "json_object" },
+            }),
+        });
+        
+        if (!response.ok) return {};
+        
+        const data = await response.json();
+        const content = data.choices[0].message.content;
+        const parsed = JSON.parse(content);
+        
+        // 验证返回的分类是否有效
+        const validCategories = new Set([...Object.keys(PRESET_CATEGORIES), "其他"]);
+        const result = {};
+        for (const [concept, category] of Object.entries(parsed)) {
+            if (validCategories.has(category)) {
+                result[concept] = category === "其他" ? null : category;
+            }
+        }
+        return result;
+    } catch (err) {
+        console.warn("LLM分类失败:", err);
+        return {};
+    }
 }
 
 function assignHierarchicalLevels(triples) {
@@ -1204,10 +1451,14 @@ async function callDeepSeekAPI(apiKey, text) {
 
 关系类型包括：提出、批判、发展、区别于、包含、属于、研究、影响、强调、认为
 
-层级规则：
-- 一级概念（大概念）：学科核心概念或理论，如"比较政治学"、"国家理论"
-- 二级概念：对一级概念的具体解释或组成部分，如"专制权力"属于"国家权力双重维度理论"
-- 三级概念：具体特征或指标，如"征税能力"属于"国家能力"
+⚠️ 重要规则：
+1. 严格只抽取正文中的学术概念、理论、学者观点
+2. 不要抽取参考文献列表（如"出版社"、"University Press"、"译"等）
+3. 不要抽取ISBN、页码、卷号、年份等元数据
+4. 不要抽取期刊名（如"Journal of XXX"）
+5. 引用关系可以保留，但被引用的文献本身不作为实体
+6. 概念要简洁（如"国家理论"而非"国家理论的相关内容"）
+7. 概念应该是名词或名词短语
 
 请严格按照JSON数组格式输出，数组中每个对象包含三个字段：subject（主语实体）、predicate（关系）、object（宾语实体）。
 
@@ -1333,42 +1584,406 @@ function renderResult(data) {
     renderTypeBars(data.typeCounts);
     renderTopNodes(data.topNodes);
     renderTriples(data.triples);
-    renderInlineTree(data.triples);
+    
+    // 异步渲染树状图（不阻塞结果展示）
+    renderInlineTree(data.triples).catch(err => {
+        console.error('树状图渲染失败:', err);
+    });
 
     document.getElementById('loadingCard').classList.add('hidden');
     document.getElementById('resultCard').classList.remove('hidden');
 }
 
-function renderInlineTree(triples) {
+async function renderInlineTree(triples) {
     const container = document.getElementById('treeContainer');
     if (!container) return;
     
     container.innerHTML = '';
     
-    const entityLevels = assignHierarchicalLevels(triples);
+    // 1. 过滤参考文献
+    const filteredTriples = triples.filter(t => 
+        !isReferenceEntity(t.subject) && !isReferenceEntity(t.object)
+    );
+    
+    // 2. 构建大类分类
+    const categorized = await categorizeAllConcepts(filteredTriples);
+    
+    const entityLevels = assignHierarchicalLevels(filteredTriples);
     const maxLevel = Math.max(...Object.values(entityLevels), 0);
-    const treeData = buildTree(triples, entityLevels, maxLevel);
     
     const header = document.createElement('div');
     header.style.textAlign = 'center';
-    header.style.marginBottom = '20px';
+    header.style.marginBottom = '25px';
     header.style.paddingBottom = '15px';
     header.style.borderBottom = '2px solid #667eea';
+    
+    const allEntities = new Set();
+    filteredTriples.forEach(t => { allEntities.add(t.subject); allEntities.add(t.object); });
+    
     header.innerHTML = `
-        <div style="font-size:18px;font-weight:600;color:#333;">📚 知识体系结构</div>
-        <div style="display:flex;justify-content:center;gap:30px;margin-top:10px;font-size:13px;">
-            <span style="color:#667eea;font-weight:bold;">${treeData.totalEntities}</span><span style="color:#888;">概念</span>
-            <span style="color:#667eea;font-weight:bold;">${treeData.totalRelations}</span><span style="color:#888;">关系</span>
-            <span style="color:#667eea;font-weight:bold;">${maxLevel + 1}</span><span style="color:#888;">层级</span>
+        <div style="font-size:18px;font-weight:600;color:#333;margin-bottom:8px;">📚 比较政治学知识体系</div>
+        <div style="display:flex;justify-content:center;gap:30px;font-size:13px;">
+            <span><span style="color:#667eea;font-weight:bold;">${allEntities.size}</span><span style="color:#888;"> 概念总数</span></span>
+            <span><span style="color:#667eea;font-weight:bold;">${filteredTriples.length}</span><span style="color:#888;"> 关系总数</span></span>
+            <span><span style="color:#667eea;font-weight:bold;">${categorized.classifiedCount}</span><span style="color:#888;"> 已分类</span></span>
         </div>
     `;
     container.appendChild(header);
     
+    // 3. 按预设大类展示
     const treeBody = document.createElement('div');
-    for (const root of treeData.roots) {
-        treeBody.appendChild(renderTreeNode(root, 0));
+    treeBody.style.display = 'flex';
+    treeBody.style.flexDirection = 'column';
+    treeBody.style.gap = '16px';
+    
+    for (const [categoryName, categoryInfo] of Object.entries(PRESET_CATEGORIES)) {
+        const concepts = categorized.byCategory[categoryName] || [];
+        const scholars = categorized.scholarByCategory[categoryName] || [];
+        
+        if (concepts.length === 0 && scholars.length === 0) continue;
+        
+        const card = renderCategoryCard(categoryName, categoryInfo, concepts, scholars, filteredTriples, entityLevels);
+        treeBody.appendChild(card);
     }
+    
+    // 4. "其他未分类" 卡片
+    const others = categorized.uncategorized;
+    if (others.length > 0) {
+        const otherCard = renderOtherCategoryCard(others, filteredTriples, entityLevels);
+        treeBody.appendChild(otherCard);
+    }
+    
+    // 5. 学者清单（如果在某些大类下都没出现）
+    const allScholarsInCategories = new Set();
+    Object.values(categorized.scholarByCategory).forEach(arr => arr.forEach(s => allScholarsInCategories.add(s)));
+    const orphanScholars = [];
+    for (const entity of allEntities) {
+        if (smartClassifyEntity(entity) === "Scholar" && !allScholarsInCategories.has(entity)) {
+            orphanScholars.push(entity);
+        }
+    }
+    if (orphanScholars.length > 0) {
+        const scholarCard = renderScholarCategoryCard(orphanScholars, filteredTriples, entityLevels);
+        treeBody.appendChild(scholarCard);
+    }
+    
     container.appendChild(treeBody);
+}
+
+// 分类所有概念 - 关键词匹配 + LLM兜底
+async function categorizeAllConcepts(triples) {
+    const allEntities = new Set();
+    triples.forEach(t => { allEntities.add(t.subject); allEntities.add(t.object); });
+    
+    const byCategory = {};
+    const scholarByCategory = {};
+    const uncategorized = [];
+    
+    for (const categoryName of Object.keys(PRESET_CATEGORIES)) {
+        byCategory[categoryName] = [];
+        scholarByCategory[categoryName] = [];
+    }
+    
+    for (const entity of allEntities) {
+        if (isReferenceEntity(entity)) continue;
+        
+        const etype = smartClassifyEntity(entity);
+        const { category, subcategory } = classifyToCategory(entity);
+        
+        if (category && byCategory[category]) {
+            if (etype === "Scholar") {
+                if (!scholarByCategory[category].includes(entity)) {
+                    scholarByCategory[category].push(entity);
+                }
+            } else {
+                if (!byCategory[category].some(c => c.name === entity)) {
+                    byCategory[category].push({ name: entity, subcategory, type: etype });
+                }
+            }
+        } else if (etype !== "Scholar") {
+            uncategorized.push(entity);
+        }
+    }
+    
+    // LLM 兜底分类未分类概念
+    const apiKey = document.getElementById('apiKey')?.value?.trim();
+    if (uncategorized.length > 0 && apiKey) {
+        try {
+            const llmResult = await llmClassifyConcepts(apiKey, uncategorized);
+            for (const [concept, category] of Object.entries(llmResult)) {
+                if (category && byCategory[category]) {
+                    if (!byCategory[category].some(c => c.name === concept)) {
+                        byCategory[category].push({ name: concept, subcategory: null, type: smartClassifyEntity(concept) });
+                    }
+                    const idx = uncategorized.indexOf(concept);
+                    if (idx > -1) uncategorized.splice(idx, 1);
+                }
+            }
+        } catch (e) {
+            console.warn("LLM分类失败:", e);
+        }
+    }
+    
+    let classifiedCount = 0;
+    Object.values(byCategory).forEach(arr => { classifiedCount += arr.length; });
+    Object.values(scholarByCategory).forEach(arr => { classifiedCount += arr.length; });
+    
+    return { byCategory, scholarByCategory, uncategorized, classifiedCount };
+}
+
+// 渲染单个大类卡片
+function renderCategoryCard(categoryName, categoryInfo, concepts, scholars, triples, entityLevels) {
+    const card = document.createElement('div');
+    card.className = 'category-card';
+    card.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        border: 2px solid ${categoryInfo.color}30;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        overflow: hidden;
+        transition: all 0.2s ease;
+    `;
+    
+    const header = document.createElement('div');
+    header.style.cssText = `
+        background: linear-gradient(135deg, ${categoryInfo.color}15 0%, ${categoryInfo.color}05 100%);
+        padding: 14px 18px;
+        border-bottom: 2px solid ${categoryInfo.color}40;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    `;
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">${categoryInfo.icon}</span>
+            <div>
+                <div style="font-size:16px;font-weight:600;color:${categoryInfo.color};">${categoryName}</div>
+                <div style="font-size:12px;color:#888;margin-top:2px;">${categoryInfo.description}</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;font-size:12px;">
+            ${concepts.length > 0 ? `<span style="background:${categoryInfo.color};color:white;padding:3px 10px;border-radius:12px;">${concepts.length} 概念</span>` : ''}
+            ${scholars.length > 0 ? `<span style="background:#228B22;color:white;padding:3px 10px;border-radius:12px;">${scholars.length} 学者</span>` : ''}
+        </div>
+    `;
+    
+    const body = document.createElement('div');
+    body.className = 'category-card-body';
+    body.style.padding = '14px 18px';
+    body.style.display = 'none';
+    
+    // 按子分类分组
+    const subcategoryGroups = {};
+    const noSubcategory = [];
+    for (const c of concepts) {
+        if (c.subcategory) {
+            if (!subcategoryGroups[c.subcategory]) subcategoryGroups[c.subcategory] = [];
+            subcategoryGroups[c.subcategory].push(c);
+        } else {
+            noSubcategory.push(c);
+        }
+    }
+    
+    // 渲染子分类
+    for (const [subcat, items] of Object.entries(subcategoryGroups)) {
+        const subDiv = document.createElement('div');
+        subDiv.style.marginBottom = '10px';
+        subDiv.innerHTML = `<div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:500;">📂 ${subcat}</div>`;
+        for (const c of items) {
+            subDiv.appendChild(renderConceptItem(c, categoryInfo.color, triples, entityLevels));
+        }
+        body.appendChild(subDiv);
+    }
+    
+    // 无子分类的概念
+    if (noSubcategory.length > 0) {
+        const subDiv = document.createElement('div');
+        subDiv.style.marginBottom = '10px';
+        if (Object.keys(subcategoryGroups).length > 0) {
+            subDiv.innerHTML = `<div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:500;">📂 其他</div>`;
+        }
+        for (const c of noSubcategory) {
+            subDiv.appendChild(renderConceptItem(c, categoryInfo.color, triples, entityLevels));
+        }
+        body.appendChild(subDiv);
+    }
+    
+    // 学者列表
+    if (scholars.length > 0) {
+        const scholarDiv = document.createElement('div');
+        scholarDiv.style.marginTop = '10px';
+        scholarDiv.style.paddingTop = '10px';
+        scholarDiv.style.borderTop = '1px dashed #ddd';
+        scholarDiv.innerHTML = `<div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:500;">👥 关联学者</div>`;
+        for (const scholar of scholars) {
+            scholarDiv.appendChild(renderConceptItem({ name: scholar, type: 'Scholar' }, categoryInfo.color, triples, entityLevels));
+        }
+        body.appendChild(scholarDiv);
+    }
+    
+    header.addEventListener('click', function() {
+        const isOpen = body.style.display === 'block';
+        body.style.display = isOpen ? 'none' : 'block';
+    });
+    
+    card.appendChild(header);
+    card.appendChild(body);
+    return card;
+}
+
+// 渲染"其他未分类"卡片
+function renderOtherCategoryCard(others, triples, entityLevels) {
+    const card = document.createElement('div');
+    card.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        border: 2px dashed #999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    `;
+    
+    const header = document.createElement('div');
+    header.style.cssText = `
+        background: #f5f5f5;
+        padding: 14px 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    `;
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">📋</span>
+            <div>
+                <div style="font-size:16px;font-weight:600;color:#666;">其他未分类</div>
+                <div style="font-size:12px;color:#999;margin-top:2px;">未匹配到预设大类的概念</div>
+            </div>
+        </div>
+        <span style="background:#999;color:white;padding:3px 10px;border-radius:12px;font-size:12px;">${others.length}</span>
+    `;
+    
+    const body = document.createElement('div');
+    body.style.padding = '14px 18px';
+    body.style.display = 'none';
+    
+    for (const name of others) {
+        body.appendChild(renderConceptItem({ name, type: smartClassifyEntity(name) }, '#666', triples, entityLevels));
+    }
+    
+    header.addEventListener('click', function() {
+        body.style.display = body.style.display === 'block' ? 'none' : 'block';
+    });
+    
+    card.appendChild(header);
+    card.appendChild(body);
+    return card;
+}
+
+// 渲染"独立学者"卡片
+function renderScholarCategoryCard(scholars, triples, entityLevels) {
+    const card = document.createElement('div');
+    card.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        border: 2px solid #228B2230;
+    `;
+    
+    const header = document.createElement('div');
+    header.style.cssText = `
+        background: linear-gradient(135deg, #228B2215 0%, #228B2205 100%);
+        padding: 14px 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    `;
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">👤</span>
+            <div>
+                <div style="font-size:16px;font-weight:600;color:#228B22;">其他学者</div>
+                <div style="font-size:12px;color:#888;margin-top:2px;">未匹配预设关联的学者</div>
+            </div>
+        </div>
+        <span style="background:#228B22;color:white;padding:3px 10px;border-radius:12px;font-size:12px;">${scholars.length}</span>
+    `;
+    
+    const body = document.createElement('div');
+    body.style.padding = '14px 18px';
+    body.style.display = 'none';
+    
+    for (const scholar of scholars) {
+        body.appendChild(renderConceptItem({ name: scholar, type: 'Scholar' }, '#228B22', triples, entityLevels));
+    }
+    
+    header.addEventListener('click', function() {
+        body.style.display = body.style.display === 'block' ? 'none' : 'block';
+    });
+    
+    card.appendChild(header);
+    card.appendChild(body);
+    return card;
+}
+
+// 渲染单个概念项（带子节点展示）
+function renderConceptItem(concept, color, triples, entityLevels) {
+    const item = document.createElement('div');
+    item.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        margin-bottom: 4px;
+        background: ${color}08;
+    `;
+    
+    const typeIcon = concept.type === 'Scholar' ? '👤' : (concept.type === 'Theory' ? '💡' : '📘');
+    const typeColor = concept.type === 'Scholar' ? '#228B22' : (concept.type === 'Theory' ? '#FF6F00' : '#1E88E5');
+    
+    item.innerHTML = `
+        <span style="font-size:14px;">${typeIcon}</span>
+        <span style="flex:1;font-size:14px;color:#333;">${concept.name}</span>
+        <span style="font-size:11px;color:${typeColor};background:${typeColor}15;padding:2px 8px;border-radius:10px;">
+            ${concept.type === 'Scholar' ? '学者' : (concept.type === 'Theory' ? '理论' : '概念')}
+        </span>
+    `;
+    
+    // 查找该概念相关的三元组
+    const relatedTriples = triples.filter(t => t.subject === concept.name || t.object === concept.name);
+    if (relatedTriples.length > 0) {
+        const detail = document.createElement('div');
+        detail.style.cssText = `
+            margin-left: 22px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: #fafafa;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        `;
+        const relations = relatedTriples.map(t => {
+            if (t.subject === concept.name) {
+                return `<span style="color:${color};font-weight:500;">${concept.name}</span> <span style="color:#999;">${t.predicate}</span> <span style="color:#333;">${t.object}</span>`;
+            } else {
+                return `<span style="color:#333;">${t.subject}</span> <span style="color:#999;">${t.predicate}</span> <span style="color:${color};font-weight:500;">${concept.name}</span>`;
+            }
+        }).join('<br/>');
+        detail.innerHTML = relations;
+        
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            detail.style.display = detail.style.display === 'block' ? 'none' : 'block';
+        });
+        
+        item.style.position = 'relative';
+        return [item, detail];
+    }
+    
+    return [item];
 }
 
 function renderTypeBars(counts) {
