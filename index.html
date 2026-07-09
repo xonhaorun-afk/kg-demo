@@ -539,11 +539,210 @@ header p {
 
 #mynetwork {
     width: 100%;
-    height: 600px;
+    min-height: 500px;
     background: #FAFAFA;
     border-radius: 12px;
     border: 1px solid #e0e0e0;
     margin-top: 20px;
+    padding: 30px;
+    overflow: auto;
+    position: relative;
+}
+
+.tree-container {
+    width: 100%;
+    min-height: 100%;
+}
+
+.tree-node {
+    position: relative;
+    padding-left: 28px;
+    margin: 6px 0;
+}
+
+.tree-node::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 1.5px;
+    background: linear-gradient(to bottom, #ddd 0%, #ddd 100%);
+}
+
+.tree-node > .tree-node::before {
+    left: 10px;
+}
+
+.tree-node-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    border: 1.5px solid transparent;
+    position: relative;
+}
+
+.tree-node-content:hover {
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.tree-node-content.has-children::before {
+    content: '▶';
+    position: absolute;
+    left: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: #888;
+    transition: transform 0.2s ease;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.tree-node.expanded > .tree-node-content.has-children::before {
+    transform: translateY(-50%) rotate(90deg);
+    background: #667eea;
+    color: white;
+}
+
+.tree-node-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    color: white;
+    font-weight: bold;
+}
+
+.tree-node-badge.type-concept {
+    background: linear-gradient(135deg, #4A90D9, #1E88E5);
+    box-shadow: 0 2px 8px rgba(30,136,229,0.3);
+}
+
+.tree-node-badge.type-theory {
+    background: linear-gradient(135deg, #FF8C00, #FF6F00);
+    box-shadow: 0 2px 8px rgba(255,111,0,0.3);
+}
+
+.tree-node-badge.type-scholar {
+    background: linear-gradient(135deg, #228B22, #1B5E20);
+    box-shadow: 0 2px 8px rgba(27,94,32,0.3);
+}
+
+.tree-node-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.tree-node-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-node-type {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+}
+
+.tree-node-relation {
+    font-size: 11px;
+    color: #667eea;
+    background: #F5F3FF;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.tree-children {
+    display: none;
+    margin-top: 4px;
+}
+
+.tree-node.expanded > .tree-children {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tree-root-label {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #667eea;
+    display: inline-block;
+}
+
+.tree-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.tree-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 10px;
+}
+
+.tree-stat-item {
+    text-align: center;
+}
+
+.tree-stat-number {
+    font-size: 22px;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.tree-stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.tree-scholar-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #E8F5E9;
+    color: #1B5E20;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.tree-scholar-tag::before {
+    content: '👤';
+    font-size: 11px;
 }
 
 .graph-section {
@@ -763,7 +962,7 @@ footer {
 
             <div class="actions">
                 <button class="primary-btn" onclick="showGraph()">
-                    🕸️ 查看层级知识图谱
+                    🌳 查看层级知识树
                 </button>
                 <button class="secondary-btn" onclick="location.reload()">
                     🔄 上传新的书籍
@@ -773,12 +972,11 @@ footer {
     </main>
 
     <div class="card graph-section" id="graphCard">
-        <h2>🕸️ 层级知识图谱</h2>
+        <h2>🌳 层级知识树</h2>
         <div class="graph-tip">
-            💡 <strong>交互提示：</strong>单击大圆圈展开子概念和学者，再次单击收起；滚轮缩放；拖拽平移
+            💡 <strong>交互提示：</strong>点击概念左侧 ▶ 箭头或名称展开/收起子概念；绿色为学者，橙色为理论，蓝色为概念
         </div>
         <div class="graph-controls">
-            <button class="graph-control-btn" onclick="resetGraph()">🔄 重置视图</button>
             <button class="graph-control-btn" onclick="expandAll()">📢 展开全部</button>
             <button class="graph-control-btn" onclick="collapseAll()">📥 收起全部</button>
             <button class="graph-control-btn" onclick="hideGraph()">← 返回结果页</button>
@@ -786,7 +984,7 @@ footer {
         <div id="mynetwork">
             <div class="graph-loading-overlay" id="graphLoading">
                 <div class="graph-loading-spinner"></div>
-                <div class="graph-loading-text">正在构建图谱...</div>
+                <div class="graph-loading-text">正在构建知识树...</div>
                 <div class="graph-loading-progress">
                     <div class="graph-loading-progress-fill" id="graphProgressFill" style="width: 0%"></div>
                 </div>
@@ -1328,254 +1526,245 @@ function createGraph(triples) {
     const container = document.getElementById('mynetwork');
     const graphProgressFill = document.getElementById('graphProgressFill');
     
-    graphProgressFill.style.width = '10%';
-    
-    const nodes = [];
-    const edges = [];
-    nodeIds = {};
-    nodeNames = {};
-    let currentId = 1;
-
     graphProgressFill.style.width = '20%';
     
     const entityLevels = assignHierarchicalLevels(triples);
     const maxLevel = Math.max(...Object.values(entityLevels), 0);
-    const rootEntities = new Set();
     
-    for (const t of triples) {
-        rootEntities.add(t.subject);
-    }
-    
-    for (const entity of rootEntities) {
-        const etype = smartClassifyEntity(entity);
-        if (etype === 'Scholar') continue;
-        const level = entityLevels[entity] || 0;
-        if (level === maxLevel || level === 0) {
-            rootEntities.add(entity);
-        }
-    }
-
     graphProgressFill.style.width = '40%';
     
-    for (const t of triples) {
-        for (const entity of [t.subject, t.object]) {
-            if (!nodeIds[entity]) {
-                const etype = smartClassifyEntity(entity);
-                const colors = typeColors[etype];
-                const level = entityLevels[entity] || 0;
-                
-                const isRoot = rootEntities.has(entity) && etype !== 'Scholar';
-                const size = isRoot ? 50 : (etype === 'Scholar' ? 25 : 22);
-                const fontSize = isRoot ? 18 : (etype === 'Scholar' ? 12 : 13);
-                
-                const isVisible = isRoot;
-                
-                nodes.push({
-                    id: currentId,
-                    label: entity,
-                    title: `<div style="padding:10px; min-width:140px;">
-                        <strong style="font-size:15px;">${entity}</strong><br/>
-                        <span style="color:${colors.color}; font-size:12px;">● ${colors.label}</span><br/>
-                        <span style="color:#666; font-size:12px;">层级: L${level + 1}</span>
-                    </div>`,
-                    group: etype,
-                    level: level,
-                    isRoot: isRoot,
-                    color: {
-                        background: isRoot ? colors.color : colors.bg,
-                        border: colors.border,
-                        font: colors.color,
-                        highlight: { background: colors.color, border: colors.border },
-                        hover: { background: colors.color, border: colors.border },
-                    },
-                    font: { color: isRoot ? '#ffffff' : colors.color, size: fontSize, bold: isRoot },
-                    size: size,
-                    shape: 'circle',
-                    borderWidth: isRoot ? 4 : 2,
-                    shadow: { enabled: isRoot, color: 'rgba(0,0,0,0.3)', size: 10 },
-                    hidden: !isVisible,
-                });
-                nodeIds[entity] = currentId;
-                nodeNames[currentId] = entity;
-                currentId++;
-            }
-        }
-    }
-
-    graphProgressFill.style.width = '60%';
+    const treeData = buildTree(triples, entityLevels, maxLevel);
     
-    for (const t of triples) {
-        edges.push({
-            from: nodeIds[t.subject],
-            to: nodeIds[t.object],
-            label: t.predicate,
-            font: { size: 11, color: '#555', bold: true },
-            color: { color: '#999', highlight: '#E74C3C' },
-            width: 2,
-            arrows: 'to',
-            smooth: { type: 'continuous', roundness: 0.3 },
-            hidden: !nodeIds[t.subject] || !nodeIds[t.object] || 
-                    (!nodes.find(n => n.id === nodeIds[t.subject])?.isRoot && !nodes.find(n => n.id === nodeIds[t.subject])?.hidden === false),
-        });
-    }
-
-    graphProgressFill.style.width = '80%';
+    graphProgressFill.style.width = '70%';
     
-    const data = { nodes, edges };
-
-    const options = {
-        physics: {
-            enabled: true,
-            barnesHut: {
-                gravitationalConstant: -10000,
-                centralGravity: 0.1,
-                springLength: 300,
-                springConstant: 0.02,
-                damping: 0.09,
-                avoidOverlap: 0.8,
-            },
-            minVelocity: 0.1,
-            stabilization: {
-                enabled: true,
-                iterations: 100,
-                updateInterval: 25,
-            },
-        },
-        interaction: {
-            hover: true,
-            tooltipDelay: 80,
-            zoomView: true,
-            dragView: true,
-            navigationButtons: true,
-            hideEdgesOnDrag: false,
-            hideEdgesOnZoom: false,
-        },
-        nodes: {
-            shadow: { enabled: true, color: 'rgba(0,0,0,0.2)', size: 5 },
-        },
-        edges: {
-            smooth: { type: 'curvedCW', roundness: 0.2 },
-        },
-        layout: {
-            hierarchical: {
-                enabled: false,
-            },
-        },
-    };
-
-    graphProgressFill.style.width = '90%';
+    const loadingOverlay = document.getElementById('graphLoading');
+    container.innerHTML = '';
+    container.appendChild(loadingOverlay);
     
-    if (networkInstance) {
-        networkInstance.destroy();
+    const treeContainer = document.createElement('div');
+    treeContainer.className = 'tree-container';
+    
+    const header = document.createElement('div');
+    header.className = 'tree-header';
+    header.innerHTML = `
+        <div class="tree-root-label">📚 比较政治学知识体系</div>
+        <div class="tree-stats">
+            <div class="tree-stat-item">
+                <div class="tree-stat-number">${treeData.totalEntities}</div>
+                <div class="tree-stat-label">概念总数</div>
+            </div>
+            <div class="tree-stat-item">
+                <div class="tree-stat-number">${treeData.totalRelations}</div>
+                <div class="tree-stat-label">关系总数</div>
+            </div>
+            <div class="tree-stat-item">
+                <div class="tree-stat-number">${maxLevel + 1}</div>
+                <div class="tree-stat-label">层级深度</div>
+            </div>
+        </div>
+    `;
+    treeContainer.appendChild(header);
+    
+    const treeBody = document.createElement('div');
+    treeBody.style.marginTop = '20px';
+    
+    for (const root of treeData.roots) {
+        treeBody.appendChild(renderTreeNode(root, 0));
     }
-
-    networkInstance = new vis.Network(container, data, options);
-
-    networkInstance.on("click", function (params) {
-        const nodeId = params.nodes[0];
-        if (!nodeId) return;
-        
-        const entity = nodeNames[nodeId];
-        const children = findChildren(entity, triples, entityLevels);
-        
-        if (expandedNodes.has(entity)) {
-            const hideIds = children.map(c => nodeIds[c]).filter(id => id);
-            networkInstance.hide(hideIds);
-            const edgeIds = [];
-            networkInstance.getConnectedEdges(nodeId).forEach(eid => {
-                const edge = networkInstance.getEdge(eid);
-                if (hideIds.includes(edge.to)) {
-                    edgeIds.push(eid);
-                }
-            });
-            networkInstance.hideEdges(edgeIds);
-            expandedNodes.delete(entity);
-        } else {
-            const showIds = children.map(c => nodeIds[c]).filter(id => id);
-            networkInstance.show(showIds);
-            const edgeIds = [];
-            networkInstance.getConnectedEdges(nodeId).forEach(eid => {
-                const edge = networkInstance.getEdge(eid);
-                if (showIds.includes(edge.to)) {
-                    edgeIds.push(eid);
-                }
-            });
-            networkInstance.showEdges(edgeIds);
-            expandedNodes.add(entity);
-            setTimeout(() => {
-                networkInstance.stabilize();
-            }, 300);
-        }
-    });
-
-    networkInstance.on("stabilized", function () {
-        document.getElementById('graphLoading').style.display = 'none';
-        graphProgressFill.style.width = '100%';
-    });
-
+    
+    treeContainer.appendChild(treeBody);
+    container.appendChild(treeContainer);
+    
     graphProgressFill.style.width = '100%';
+    
+    setTimeout(() => {
+        document.getElementById('graphLoading').style.display = 'none';
+    }, 300);
 }
 
-function resetGraph() {
-    if (networkInstance) {
-        networkInstance.fit({ animation: { duration: 500 } });
-        networkInstance.stabilize();
+function buildTree(triples, entityLevels, maxLevel) {
+    const childrenMap = new Map();
+    const relationMap = new Map();
+    const allEntities = new Set();
+    
+    for (const t of triples) {
+        allEntities.add(t.subject);
+        allEntities.add(t.object);
+        
+        const key = t.subject;
+        if (!childrenMap.has(key)) {
+            childrenMap.set(key, []);
+        }
+        if (!childrenMap.get(key).includes(t.object)) {
+            childrenMap.get(key).push(t.object);
+        }
+        
+        const relKey = `${t.subject}->${t.object}`;
+        relationMap.set(relKey, t.predicate);
     }
+    
+    const roots = [];
+    const hasParent = new Set();
+    
+    for (const t of triples) {
+        if (['包含', '包括', '属于', '提出', '发展'].includes(t.predicate)) {
+            hasParent.add(t.object);
+        }
+    }
+    
+    const rootCandidates = [];
+    for (const entity of allEntities) {
+        const etype = smartClassifyEntity(entity);
+        if (etype !== 'Scholar' && !hasParent.has(entity)) {
+            rootCandidates.push({
+                name: entity,
+                level: entityLevels[entity] || 0,
+                type: etype
+            });
+        }
+    }
+    
+    rootCandidates.sort((a, b) => b.level - a.level);
+    
+    const added = new Set();
+    for (const candidate of rootCandidates) {
+        if (!added.has(candidate.name)) {
+            roots.push(buildTreeNode(candidate.name, childrenMap, relationMap, entityLevels, added, 0));
+        }
+    }
+    
+    const scholars = [];
+    for (const entity of allEntities) {
+        if (smartClassifyEntity(entity) === 'Scholar' && !added.has(entity)) {
+            scholars.push({
+                name: entity,
+                type: 'Scholar',
+                children: [],
+                relation: '相关学者'
+            });
+        }
+    }
+    
+    if (scholars.length > 0) {
+        roots.push({
+            name: '学者名录',
+            type: 'Concept',
+            children: scholars,
+            relation: '',
+            hasChildren: true
+        });
+    }
+    
+    return {
+        roots,
+        totalEntities: allEntities.size,
+        totalRelations: triples.length
+    };
+}
+
+function buildTreeNode(name, childrenMap, relationMap, entityLevels, added, depth) {
+    if (added.has(name) || depth > 10) {
+        return null;
+    }
+    added.add(name);
+    
+    const etype = smartClassifyEntity(name);
+    const children = [];
+    const childNames = childrenMap.get(name) || [];
+    
+    for (const childName of childNames) {
+        const relKey = `${name}->${childName}`;
+        const relation = relationMap.get(relKey) || '相关';
+        const childNode = buildTreeNode(childName, childrenMap, relationMap, entityLevels, added, depth + 1);
+        if (childNode) {
+            childNode.relation = relation;
+            children.push(childNode);
+        }
+    }
+    
+    return {
+        name,
+        type: etype,
+        children,
+        relation: '',
+        hasChildren: children.length > 0,
+        level: entityLevels[name] || 0
+    };
+}
+
+function renderTreeNode(node, depth) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tree-node';
+    
+    const content = document.createElement('div');
+    content.className = 'tree-node-content';
+    if (node.hasChildren) {
+        content.classList.add('has-children');
+    }
+    
+    const badge = document.createElement('div');
+    badge.className = `tree-node-badge type-${node.type.toLowerCase()}`;
+    badge.textContent = node.name.charAt(0);
+    
+    const textDiv = document.createElement('div');
+    textDiv.className = 'tree-node-text';
+    
+    const label = document.createElement('div');
+    label.className = 'tree-node-label';
+    label.textContent = node.name;
+    
+    const typeLabel = document.createElement('div');
+    typeLabel.className = 'tree-node-type';
+    const typeMap = { 'Concept': '概念', 'Theory': '理论', 'Scholar': '学者' };
+    typeLabel.textContent = typeMap[node.type] || node.type;
+    
+    textDiv.appendChild(label);
+    textDiv.appendChild(typeLabel);
+    
+    content.appendChild(badge);
+    content.appendChild(textDiv);
+    
+    if (node.relation) {
+        const relTag = document.createElement('div');
+        relTag.className = 'tree-node-relation';
+        relTag.textContent = node.relation;
+        content.appendChild(relTag);
+    }
+    
+    wrapper.appendChild(content);
+    
+    if (node.hasChildren) {
+        const childrenDiv = document.createElement('div');
+        childrenDiv.className = 'tree-children';
+        
+        for (const child of node.children) {
+            const childNode = renderTreeNode(child, depth + 1);
+            childrenDiv.appendChild(childNode);
+        }
+        
+        wrapper.appendChild(childrenDiv);
+        
+        content.addEventListener('click', function(e) {
+            e.stopPropagation();
+            wrapper.classList.toggle('expanded');
+        });
+    }
+    
+    return wrapper;
 }
 
 function expandAll() {
-    if (networkInstance) {
-        networkInstance.show();
-        expandedNodes.clear();
-        for (const t of currentTriples) {
-            expandedNodes.add(t.subject);
-        }
-    }
+    const nodes = document.querySelectorAll('.tree-node.has-children');
+    nodes.forEach(node => node.classList.add('expanded'));
 }
 
 function collapseAll() {
-    if (networkInstance && currentTriples.length > 0) {
-        const entityLevels = assignHierarchicalLevels(currentTriples);
-        const maxLevel = Math.max(...Object.values(entityLevels), 0);
-        const hiddenIds = [];
-        
-        for (const t of currentTriples) {
-            for (const entity of [t.subject, t.object]) {
-                const etype = smartClassifyEntity(entity);
-                if (etype !== 'Scholar') {
-                    const level = entityLevels[entity] || 0;
-                    if (level !== maxLevel && level !== 0) {
-                        const id = nodeIds[entity];
-                        if (id) hiddenIds.push(id);
-                    }
-                } else {
-                    const id = nodeIds[entity];
-                    if (id) hiddenIds.push(id);
-                }
-            }
-        }
-        
-        networkInstance.hide(hiddenIds);
-        networkInstance.hideEdges(networkInstance.getEdges());
-        
-        const rootIds = [];
-        for (const t of currentTriples) {
-            const etype = smartClassifyEntity(t.subject);
-            if (etype !== 'Scholar') {
-                const level = entityLevels[t.subject] || 0;
-                if (level === maxLevel || level === 0) {
-                    const id = nodeIds[t.subject];
-                    if (id && !rootIds.includes(id)) rootIds.push(id);
-                }
-            }
-        }
-        networkInstance.show(rootIds);
-        
-        expandedNodes.clear();
-        setTimeout(() => {
-            networkInstance.stabilize();
-        }, 300);
-    }
+    const nodes = document.querySelectorAll('.tree-node.expanded');
+    nodes.forEach(node => node.classList.remove('expanded'));
+}
+
+function resetGraph() {
+    collapseAll();
 }
 
 async function runDemo() {
