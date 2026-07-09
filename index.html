@@ -960,37 +960,19 @@ footer {
                 <div class="triples-list" id="triplesList"></div>
             </div>
 
-            <div class="actions">
-                <button class="primary-btn" onclick="showGraph()">
-                    🌳 查看层级知识树
-                </button>
-                <button class="secondary-btn" onclick="location.reload()">
-                    🔄 上传新的书籍
-                </button>
+            <div class="section">
+                <h3>🌳 层级知识树</h3>
+                <div class="graph-tip" style="background:#F5F3FF;padding:10px;border-radius:6px;margin-bottom:15px;font-size:13px;color:#555;">
+                    💡 点击概念左侧 ▶ 箭头或名称展开/收起子概念；<span style="color:#1E88E5;">●蓝色=概念</span>，<span style="color:#FF6F00;">●橙色=理论</span>，<span style="color:#1B5E20;">●绿色=学者</span>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <button class="graph-control-btn" onclick="expandAll()">📢 展开全部</button>
+                    <button class="graph-control-btn" onclick="collapseAll()">📥 收起全部</button>
+                </div>
+                <div id="treeContainer" style="background:#FAFAFA;border-radius:8px;border:1px solid #e0e0e0;padding:20px;max-height:600px;overflow:auto;"></div>
             </div>
         </div>
     </main>
-
-    <div class="card graph-section" id="graphCard">
-        <h2>🌳 层级知识树</h2>
-        <div class="graph-tip">
-            💡 <strong>交互提示：</strong>点击概念左侧 ▶ 箭头或名称展开/收起子概念；绿色为学者，橙色为理论，蓝色为概念
-        </div>
-        <div class="graph-controls">
-            <button class="graph-control-btn" onclick="expandAll()">📢 展开全部</button>
-            <button class="graph-control-btn" onclick="collapseAll()">📥 收起全部</button>
-            <button class="graph-control-btn" onclick="hideGraph()">← 返回结果页</button>
-        </div>
-        <div id="mynetwork">
-            <div class="graph-loading-overlay" id="graphLoading">
-                <div class="graph-loading-spinner"></div>
-                <div class="graph-loading-text">正在构建知识树...</div>
-                <div class="graph-loading-progress">
-                    <div class="graph-loading-progress-fill" id="graphProgressFill" style="width: 0%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <footer>
         <p>© 2026 比较政治学知识图谱预演 · 辛浩然</p>
@@ -999,8 +981,6 @@ footer {
 </div>
 
 <script src="js/pdf.min.js"></script>
-<script src="js/vis-network.min.js"></script>
-<link rel="stylesheet" href="css/vis-network.min.css">
 
 <script>
 // 配置 PDF.js worker
@@ -1353,9 +1333,42 @@ function renderResult(data) {
     renderTypeBars(data.typeCounts);
     renderTopNodes(data.topNodes);
     renderTriples(data.triples);
+    renderInlineTree(data.triples);
 
     document.getElementById('loadingCard').classList.add('hidden');
     document.getElementById('resultCard').classList.remove('hidden');
+}
+
+function renderInlineTree(triples) {
+    const container = document.getElementById('treeContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    const entityLevels = assignHierarchicalLevels(triples);
+    const maxLevel = Math.max(...Object.values(entityLevels), 0);
+    const treeData = buildTree(triples, entityLevels, maxLevel);
+    
+    const header = document.createElement('div');
+    header.style.textAlign = 'center';
+    header.style.marginBottom = '20px';
+    header.style.paddingBottom = '15px';
+    header.style.borderBottom = '2px solid #667eea';
+    header.innerHTML = `
+        <div style="font-size:18px;font-weight:600;color:#333;">📚 知识体系结构</div>
+        <div style="display:flex;justify-content:center;gap:30px;margin-top:10px;font-size:13px;">
+            <span style="color:#667eea;font-weight:bold;">${treeData.totalEntities}</span><span style="color:#888;">概念</span>
+            <span style="color:#667eea;font-weight:bold;">${treeData.totalRelations}</span><span style="color:#888;">关系</span>
+            <span style="color:#667eea;font-weight:bold;">${maxLevel + 1}</span><span style="color:#888;">层级</span>
+        </div>
+    `;
+    container.appendChild(header);
+    
+    const treeBody = document.createElement('div');
+    for (const root of treeData.roots) {
+        treeBody.appendChild(renderTreeNode(root, 0));
+    }
+    container.appendChild(treeBody);
 }
 
 function renderTypeBars(counts) {
