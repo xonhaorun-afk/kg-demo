@@ -775,7 +775,7 @@ footer {
     <div class="card graph-section" id="graphCard">
         <h2>🕸️ 层级知识图谱</h2>
         <div class="graph-tip">
-            💡 <strong>交互提示：</strong>双击概念圆圈展开/收起子概念和相关学者；滚轮缩放；拖拽平移；点击节点高亮关联关系
+            💡 <strong>交互提示：</strong>单击大圆圈展开子概念和学者，再次单击收起；滚轮缩放；拖拽平移
         </div>
         <div class="graph-controls">
             <button class="graph-control-btn" onclick="resetGraph()">🔄 重置视图</button>
@@ -1332,14 +1332,28 @@ function createGraph(triples) {
     
     const nodes = [];
     const edges = [];
-    const nodeIds = {};
-    const nodeNames = {};
+    nodeIds = {};
+    nodeNames = {};
     let currentId = 1;
 
     graphProgressFill.style.width = '20%';
     
     const entityLevels = assignHierarchicalLevels(triples);
     const maxLevel = Math.max(...Object.values(entityLevels), 0);
+    const rootEntities = new Set();
+    
+    for (const t of triples) {
+        rootEntities.add(t.subject);
+    }
+    
+    for (const entity of rootEntities) {
+        const etype = smartClassifyEntity(entity);
+        if (etype === 'Scholar') continue;
+        const level = entityLevels[entity] || 0;
+        if (level === maxLevel || level === 0) {
+            rootEntities.add(entity);
+        }
+    }
 
     graphProgressFill.style.width = '40%';
     
@@ -1350,9 +1364,11 @@ function createGraph(triples) {
                 const colors = typeColors[etype];
                 const level = entityLevels[entity] || 0;
                 
-                const size = 28 + (maxLevel - level) * 8;
+                const isRoot = rootEntities.has(entity) && etype !== 'Scholar';
+                const size = isRoot ? 50 : (etype === 'Scholar' ? 25 : 22);
+                const fontSize = isRoot ? 18 : (etype === 'Scholar' ? 12 : 13);
                 
-                const isVisible = level <= 1;
+                const isVisible = isRoot;
                 
                 nodes.push({
                     id: currentId,
@@ -1364,16 +1380,19 @@ function createGraph(triples) {
                     </div>`,
                     group: etype,
                     level: level,
+                    isRoot: isRoot,
                     color: {
-                        background: colors.bg,
+                        background: isRoot ? colors.color : colors.bg,
                         border: colors.border,
+                        font: colors.color,
                         highlight: { background: colors.color, border: colors.border },
                         hover: { background: colors.color, border: colors.border },
                     },
-                    font: { color: colors.color, size: Math.max(12, 14 - level) },
+                    font: { color: isRoot ? '#ffffff' : colors.color, size: fontSize, bold: isRoot },
                     size: size,
-                    shape: 'dot',
-                    borderWidth: 2,
+                    shape: 'circle',
+                    borderWidth: isRoot ? 4 : 2,
+                    shadow: { enabled: isRoot, color: 'rgba(0,0,0,0.3)', size: 10 },
                     hidden: !isVisible,
                 });
                 nodeIds[entity] = currentId;
@@ -1390,11 +1409,13 @@ function createGraph(triples) {
             from: nodeIds[t.subject],
             to: nodeIds[t.object],
             label: t.predicate,
-            font: { size: 11, color: '#555' },
+            font: { size: 11, color: '#555', bold: true },
             color: { color: '#999', highlight: '#E74C3C' },
-            width: 1.5,
+            width: 2,
             arrows: 'to',
             smooth: { type: 'continuous', roundness: 0.3 },
+            hidden: !nodeIds[t.subject] || !nodeIds[t.object] || 
+                    (!nodes.find(n => n.id === nodeIds[t.subject])?.isRoot && !nodes.find(n => n.id === nodeIds[t.subject])?.hidden === false),
         });
     }
 
@@ -1406,14 +1427,19 @@ function createGraph(triples) {
         physics: {
             enabled: true,
             barnesHut: {
-                gravitationalConstant: -4000,
-                centralGravity: 0.3,
-                springLength: 200,
-                springConstant: 0.04,
+                gravitationalConstant: -10000,
+                centralGravity: 0.1,
+                springLength: 300,
+                springConstant: 0.02,
                 damping: 0.09,
-                avoidOverlap: 0.5,
+                avoidOverlap: 0.8,
             },
-            minVelocity: 0.75,
+            minVelocity: 0.1,
+            stabilization: {
+                enabled: true,
+                iterations: 100,
+                updateInterval: 25,
+            },
         },
         interaction: {
             hover: true,
@@ -1421,6 +1447,8 @@ function createGraph(triples) {
             zoomView: true,
             dragView: true,
             navigationButtons: true,
+            hideEdgesOnDrag: false,
+            hideEdgesOnZoom: false,
         },
         nodes: {
             shadow: { enabled: true, color: 'rgba(0,0,0,0.2)', size: 5 },
@@ -1431,8 +1459,6 @@ function createGraph(triples) {
         layout: {
             hierarchical: {
                 enabled: false,
-                direction: 'UD',
-                sortMethod: 'directed',
             },
         },
     };
@@ -1445,7 +1471,7 @@ function createGraph(triples) {
 
     networkInstance = new vis.Network(container, data, options);
 
-    networkInstance.on("doubleClick", function (params) {
+    networkInstance.on("click", function (params) {
         const nodeId = params.nodes[0];
         if (!nodeId) return;
         
@@ -1455,11 +1481,30 @@ function createGraph(triples) {
         if (expandedNodes.has(entity)) {
             const hideIds = children.map(c => nodeIds[c]).filter(id => id);
             networkInstance.hide(hideIds);
+            const edgeIds = [];
+            networkInstance.getConnectedEdges(nodeId).forEach(eid => {
+                const edge = networkInstance.getEdge(eid);
+                if (hideIds.includes(edge.to)) {
+                    edgeIds.push(eid);
+                }
+            });
+            networkInstance.hideEdges(edgeIds);
             expandedNodes.delete(entity);
         } else {
             const showIds = children.map(c => nodeIds[c]).filter(id => id);
             networkInstance.show(showIds);
+            const edgeIds = [];
+            networkInstance.getConnectedEdges(nodeId).forEach(eid => {
+                const edge = networkInstance.getEdge(eid);
+                if (showIds.includes(edge.to)) {
+                    edgeIds.push(eid);
+                }
+            });
+            networkInstance.showEdges(edgeIds);
             expandedNodes.add(entity);
+            setTimeout(() => {
+                networkInstance.stabilize();
+            }, 300);
         }
     });
 
@@ -1491,11 +1536,19 @@ function expandAll() {
 function collapseAll() {
     if (networkInstance && currentTriples.length > 0) {
         const entityLevels = assignHierarchicalLevels(currentTriples);
+        const maxLevel = Math.max(...Object.values(entityLevels), 0);
         const hiddenIds = [];
         
         for (const t of currentTriples) {
             for (const entity of [t.subject, t.object]) {
-                if ((entityLevels[entity] || 0) > 1) {
+                const etype = smartClassifyEntity(entity);
+                if (etype !== 'Scholar') {
+                    const level = entityLevels[entity] || 0;
+                    if (level !== maxLevel && level !== 0) {
+                        const id = nodeIds[entity];
+                        if (id) hiddenIds.push(id);
+                    }
+                } else {
                     const id = nodeIds[entity];
                     if (id) hiddenIds.push(id);
                 }
@@ -1503,7 +1556,25 @@ function collapseAll() {
         }
         
         networkInstance.hide(hiddenIds);
+        networkInstance.hideEdges(networkInstance.getEdges());
+        
+        const rootIds = [];
+        for (const t of currentTriples) {
+            const etype = smartClassifyEntity(t.subject);
+            if (etype !== 'Scholar') {
+                const level = entityLevels[t.subject] || 0;
+                if (level === maxLevel || level === 0) {
+                    const id = nodeIds[t.subject];
+                    if (id && !rootIds.includes(id)) rootIds.push(id);
+                }
+            }
+        }
+        networkInstance.show(rootIds);
+        
         expandedNodes.clear();
+        setTimeout(() => {
+            networkInstance.stabilize();
+        }, 300);
     }
 }
 
