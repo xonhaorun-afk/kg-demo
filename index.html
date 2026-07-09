@@ -422,6 +422,14 @@ header p {
     font-weight: bold;
 }
 
+.top-level {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #E3F2FD;
+    color: #1E88E5;
+}
+
 .triples-list {
     display: flex;
     flex-direction: column;
@@ -557,13 +565,98 @@ footer {
     opacity: 0.8;
     font-size: 14px;
 }
+
+.graph-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    z-index: 10;
+}
+
+.graph-loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.graph-loading-text {
+    font-size: 16px;
+    color: #333;
+}
+
+.graph-loading-progress {
+    width: 200px;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.graph-loading-progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.graph-tip {
+    background: #E8F5E9;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #2E7D32;
+    border-left: 4px solid #4CAF50;
+}
+
+.graph-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.graph-control-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #e0e0e0;
+    background: white;
+    transition: all 0.3s;
+}
+
+.graph-control-btn:hover {
+    border-color: #667eea;
+    background: #F5F3FF;
+}
+
+.graph-control-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
 </style>
 </head>
 <body>
 <div class="container">
     <header>
         <h1>📚 比较政治学知识图谱构建平台</h1>
-        <p>上传一本书 · 自动生成知识图谱</p>
+        <p>上传一本书 · 自动生成层级知识图谱</p>
         <div class="badge-row">
             <span class="badge badge-blue">Concept · 概念</span>
             <span class="badge badge-orange">Theory · 理论</span>
@@ -599,7 +692,7 @@ footer {
                         <div class="mode-card">
                             <div class="mode-icon">⚙️</div>
                             <div class="mode-title">规则模式</div>
-                            <div class="mode-desc">快，免费，只识别预设关键词</div>
+                            <div class="mode-desc">快，免费，基础层级识别</div>
                         </div>
                     </label>
                     <label class="mode-label">
@@ -607,7 +700,7 @@ footer {
                         <div class="mode-card">
                             <div class="mode-icon">🤖</div>
                             <div class="mode-title">AI 智能模式</div>
-                            <div class="mode-desc">准确，需 API Key</div>
+                            <div class="mode-desc">准确，需 API Key，自动层级识别</div>
                         </div>
                     </label>
                 </div>
@@ -670,7 +763,7 @@ footer {
 
             <div class="actions">
                 <button class="primary-btn" onclick="showGraph()">
-                    🕸️ 查看完整交互式图谱
+                    🕸️ 查看层级知识图谱
                 </button>
                 <button class="secondary-btn" onclick="location.reload()">
                     🔄 上传新的书籍
@@ -680,13 +773,24 @@ footer {
     </main>
 
     <div class="card graph-section" id="graphCard">
-        <h2>🕸️ 交互式知识图谱</h2>
-        <p style="color: #666; margin-bottom: 15px;">拖拽节点调整布局，悬停显示详情，点击高亮相邻关系</p>
-        <div id="mynetwork"></div>
-        <div style="margin-top: 15px; text-align: center;">
-            <button class="secondary-btn" onclick="hideGraph()" style="display: inline-block; width: auto;">
-                ← 返回结果页
-            </button>
+        <h2>🕸️ 层级知识图谱</h2>
+        <div class="graph-tip">
+            💡 <strong>交互提示：</strong>双击概念圆圈展开/收起子概念和相关学者；滚轮缩放；拖拽平移；点击节点高亮关联关系
+        </div>
+        <div class="graph-controls">
+            <button class="graph-control-btn" onclick="resetGraph()">🔄 重置视图</button>
+            <button class="graph-control-btn" onclick="expandAll()">📢 展开全部</button>
+            <button class="graph-control-btn" onclick="collapseAll()">📥 收起全部</button>
+            <button class="graph-control-btn" onclick="hideGraph()">← 返回结果页</button>
+        </div>
+        <div id="mynetwork">
+            <div class="graph-loading-overlay" id="graphLoading">
+                <div class="graph-loading-spinner"></div>
+                <div class="graph-loading-text">正在构建图谱...</div>
+                <div class="graph-loading-progress">
+                    <div class="graph-loading-progress-fill" id="graphProgressFill" style="width: 0%"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -705,11 +809,14 @@ footer {
 if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdf.worker.min.js';
 }
+
 const typeColors = {
     Concept: { color: '#4A90D9', bg: '#E3F2FD', border: '#1E88E5', label: '概念' },
     Theory:  { color: '#FF8C00', bg: '#FFF3E0', border: '#FF6F00', label: '理论' },
     Scholar: { color: '#228B22', bg: '#E8F5E9', border: '#1B5E20', label: '学者' },
 };
+
+const levelColors = ['#667eea', '#4A90D9', '#2196F3', '#1E88E5', '#1976D2'];
 
 const ENTITY_TYPES = {
     "马克斯·韦伯": "Scholar",
@@ -729,9 +836,82 @@ const ENTITY_TYPES = {
 
 function smartClassifyEntity(name) {
     if (ENTITY_TYPES[name]) return ENTITY_TYPES[name];
-    if (/学者|家|先生|韦伯|曼|斯基|科夫|尔/.test(name)) return "Scholar";
+    if (/学者|家|先生|韦伯|曼|斯基|科夫|尔|达尔|熊彼特/.test(name)) return "Scholar";
     if (/理论|主义|视角|学说|范式/.test(name)) return "Theory";
     return "Concept";
+}
+
+function assignHierarchicalLevels(triples) {
+    const entityLevels = {};
+    const entityParents = new Map();
+    const entityChildren = new Map();
+
+    for (const t of triples) {
+        const s = t.subject;
+        const p = t.predicate;
+        const o = t.object;
+
+        if (!entityLevels[s]) entityLevels[s] = 0;
+        if (!entityLevels[o]) entityLevels[o] = 0;
+
+        if (p === '包含' || p === '包括' || p === '属于') {
+            if (!entityChildren.has(s)) entityChildren.set(s, []);
+            entityChildren.get(s).push(o);
+            entityParents.set(o, s);
+        } else if (p === '提出' || p === '发展') {
+            if (!entityChildren.has(s)) entityChildren.set(s, []);
+            entityChildren.get(s).push(o);
+            entityParents.set(o, s);
+        }
+    }
+
+    const visited = new Set();
+    function computeLevel(entity) {
+        if (visited.has(entity)) return entityLevels[entity];
+        visited.add(entity);
+
+        let maxChildLevel = 0;
+        if (entityChildren.has(entity)) {
+            for (const child of entityChildren.get(entity)) {
+                const childLevel = computeLevel(child);
+                maxChildLevel = Math.max(maxChildLevel, childLevel + 1);
+            }
+        }
+        entityLevels[entity] = maxChildLevel;
+        return maxChildLevel;
+    }
+
+    for (const entity of Object.keys(entityLevels)) {
+        if (!visited.has(entity)) {
+            computeLevel(entity);
+        }
+    }
+
+    for (const entity of Object.keys(entityLevels)) {
+        if (entityLevels[entity] === 0) {
+            const etype = smartClassifyEntity(entity);
+            if (etype === 'Scholar') {
+                entityLevels[entity] = 0;
+            } else {
+                let maxChildLevel = 0;
+                if (entityChildren.has(entity)) {
+                    for (const child of entityChildren.get(entity)) {
+                        maxChildLevel = Math.max(maxChildLevel, entityLevels[child] || 0);
+                    }
+                }
+                if (maxChildLevel > 0) {
+                    entityLevels[entity] = maxChildLevel + 1;
+                }
+            }
+        }
+    }
+
+    const maxLevel = Math.max(...Object.values(entityLevels));
+    for (const entity of Object.keys(entityLevels)) {
+        entityLevels[entity] = maxLevel - entityLevels[entity];
+    }
+
+    return entityLevels;
 }
 
 function extractTriplesRule(text) {
@@ -751,6 +931,8 @@ function extractTriplesRule(text) {
         "马克斯·韦伯": ["马克斯·韦伯", "提出", "国家理论"],
         "迈克尔·曼": ["迈克尔·曼", "发展", "国家权力双重维度理论"],
         "曼": ["迈克尔·曼", "发展", "国家权力双重维度理论"],
+        "达尔": ["罗伯特·达尔", "提出", "多元民主理论"],
+        "熊彼特": ["约瑟夫·熊彼特", "提出", "精英民主理论"],
     };
 
     for (const [keyword, [s, p, o]] of Object.entries(scholarPatterns)) {
@@ -760,12 +942,18 @@ function extractTriplesRule(text) {
     const theoryContains = {
         "国家权力双重维度理论": ["专制权力", "基础性权力"],
         "国家能力": ["征税能力", "维持秩序能力", "提供公共服务能力"],
+        "多元民主理论": ["利益集团", "政治参与"],
+        "精英民主理论": ["精英竞争", "选举"],
+        "比较政治学": ["国家", "政治过程", "政治制度"],
+        "民主": ["选举", "代表", "决策"],
     };
 
     for (const [theory, concepts] of Object.entries(theoryContains)) {
         if (text.includes(theory)) {
             for (const concept of concepts) {
-                if (text.includes(concept)) addTriple(theory, "包含", concept);
+                if (text.includes(concept) || theory === '比较政治学') {
+                    addTriple(theory, "包含", concept);
+                }
             }
         }
     }
@@ -793,7 +981,6 @@ function extractTriplesRule(text) {
 }
 
 async function extractTextFromPDF(file) {
-    // 检查 pdfjsLib 是否可用
     if (typeof pdfjsLib === 'undefined') {
         throw new Error('PDF解析库加载失败，请检查网络连接或尝试刷新页面。如果问题持续，建议将PDF转换为TXT格式后上传。');
     }
@@ -830,7 +1017,7 @@ async function extractTextFromTXT(file) {
 }
 
 async function callDeepSeekAPI(apiKey, text) {
-    const prompt = `你是一位比较政治学专家。请从以下文本中抽取所有的"实体-关系-实体"三元组。
+    const prompt = `你是一位比较政治学专家。请从以下文本中抽取所有的"实体-关系-实体"三元组，并识别概念的层级关系。
 
 实体类型包括：
 - Concept（概念）：如国家能力、专制权力、民主等
@@ -839,10 +1026,15 @@ async function callDeepSeekAPI(apiKey, text) {
 
 关系类型包括：提出、批判、发展、区别于、包含、属于、研究、影响、强调、认为
 
+层级规则：
+- 一级概念（大概念）：学科核心概念或理论，如"比较政治学"、"国家理论"
+- 二级概念：对一级概念的具体解释或组成部分，如"专制权力"属于"国家权力双重维度理论"
+- 三级概念：具体特征或指标，如"征税能力"属于"国家能力"
+
 请严格按照JSON数组格式输出，数组中每个对象包含三个字段：subject（主语实体）、predicate（关系）、object（宾语实体）。
 
 输出格式示例：
-[{"subject": "马克斯·韦伯", "predicate": "提出", "object": "国家理论"}, {"subject": "国家能力", "predicate": "包含", "object": "征税能力"}]
+[{"subject": "马克斯·韦伯", "predicate": "提出", "object": "国家理论"}, {"subject": "国家能力", "predicate": "包含", "object": "征税能力"}, {"subject": "国家权力双重维度理论", "predicate": "包含", "object": "专制权力"}]
 
 只输出JSON数组，不要任何解释文字。
 
@@ -948,10 +1140,11 @@ function getTopNodes(triples, topN = 5) {
         degree[t.subject] = (degree[t.subject] || 0) + 1;
         degree[t.object] = (degree[t.object] || 0) + 1;
     }
+    const entityLevels = assignHierarchicalLevels(triples);
     return Object.entries(degree)
         .sort((a, b) => b[1] - a[1])
         .slice(0, topN)
-        .map(([name, deg]) => ({ name, degree: deg, type: smartClassifyEntity(name) }));
+        .map(([name, deg]) => ({ name, degree: deg, type: smartClassifyEntity(name), level: entityLevels[name] || 0 }));
 }
 
 function renderResult(data) {
@@ -1001,6 +1194,7 @@ function renderTopNodes(nodes) {
                 <span class="top-rank">${i + 1}</span>
                 <span class="top-name">${n.name}</span>
                 <span class="top-type" style="color:${info.color}">${info.label}</span>
+                <span class="top-level">L${n.level + 1}</span>
                 <span class="top-degree">${n.degree}</span>
             </div>
         `;
@@ -1030,6 +1224,8 @@ function updateProgress(percent, text) {
 }
 
 let currentTriples = [];
+let networkInstance = null;
+let expandedNodes = new Set();
 
 async function processFile(file) {
     document.getElementById('uploadCard').classList.add('hidden');
@@ -1093,6 +1289,9 @@ function showGraph() {
     document.getElementById('resultCard').classList.add('hidden');
     document.getElementById('graphCard').classList.add('active');
     
+    document.getElementById('graphLoading').style.display = 'flex';
+    document.getElementById('graphProgressFill').style.width = '0%';
+    
     setTimeout(() => {
         createGraph(currentTriples);
     }, 100);
@@ -1103,65 +1302,116 @@ function hideGraph() {
     document.getElementById('resultCard').classList.remove('hidden');
 }
 
+function findChildren(entity, triples, entityLevels) {
+    const children = [];
+    const queue = [entity];
+    const visited = new Set([entity]);
+    
+    while (queue.length > 0) {
+        const current = queue.shift();
+        for (const t of triples) {
+            if (t.subject === current) {
+                if (!visited.has(t.object)) {
+                    visited.add(t.object);
+                    if ((entityLevels[t.object] || 0) > (entityLevels[current] || 0)) {
+                        children.push(t.object);
+                        queue.push(t.object);
+                    }
+                }
+            }
+        }
+    }
+    return children;
+}
+
 function createGraph(triples) {
     const container = document.getElementById('mynetwork');
+    const graphProgressFill = document.getElementById('graphProgressFill');
+    
+    graphProgressFill.style.width = '10%';
     
     const nodes = [];
     const edges = [];
     const nodeIds = {};
+    const nodeNames = {};
     let currentId = 1;
 
+    graphProgressFill.style.width = '20%';
+    
+    const entityLevels = assignHierarchicalLevels(triples);
+    const maxLevel = Math.max(...Object.values(entityLevels), 0);
+
+    graphProgressFill.style.width = '40%';
+    
     for (const t of triples) {
         for (const entity of [t.subject, t.object]) {
             if (!nodeIds[entity]) {
                 const etype = smartClassifyEntity(entity);
                 const colors = typeColors[etype];
+                const level = entityLevels[entity] || 0;
+                
+                const size = 28 + (maxLevel - level) * 8;
+                
+                const isVisible = level <= 1;
                 
                 nodes.push({
                     id: currentId,
                     label: entity,
-                    title: `<div style="padding:10px; min-width:120px;"><strong style="font-size:15px;">${entity}</strong><br/><span style="color:${colors.color}; font-size:12px;">● ${colors.label}</span></div>`,
+                    title: `<div style="padding:10px; min-width:140px;">
+                        <strong style="font-size:15px;">${entity}</strong><br/>
+                        <span style="color:${colors.color}; font-size:12px;">● ${colors.label}</span><br/>
+                        <span style="color:#666; font-size:12px;">层级: L${level + 1}</span>
+                    </div>`,
                     group: etype,
+                    level: level,
                     color: {
                         background: colors.bg,
                         border: colors.border,
                         highlight: { background: colors.color, border: colors.border },
                         hover: { background: colors.color, border: colors.border },
                     },
-                    font: { color: colors.color, size: 14 },
-                    size: 28,
+                    font: { color: colors.color, size: Math.max(12, 14 - level) },
+                    size: size,
                     shape: 'dot',
                     borderWidth: 2,
+                    hidden: !isVisible,
                 });
-                nodeIds[entity] = currentId++;
+                nodeIds[entity] = currentId;
+                nodeNames[currentId] = entity;
+                currentId++;
             }
         }
     }
 
+    graphProgressFill.style.width = '60%';
+    
     for (const t of triples) {
         edges.push({
             from: nodeIds[t.subject],
             to: nodeIds[t.object],
             label: t.predicate,
-            font: { size: 12, color: '#555' },
+            font: { size: 11, color: '#555' },
             color: { color: '#999', highlight: '#E74C3C' },
             width: 1.5,
             arrows: 'to',
+            smooth: { type: 'continuous', roundness: 0.3 },
         });
     }
 
+    graphProgressFill.style.width = '80%';
+    
     const data = { nodes, edges };
 
     const options = {
         physics: {
             enabled: true,
             barnesHut: {
-                gravitationalConstant: -3500,
-                centralGravity: 0.25,
-                springLength: 180,
+                gravitationalConstant: -4000,
+                centralGravity: 0.3,
+                springLength: 200,
                 springConstant: 0.04,
                 damping: 0.09,
-                avoidOverlap: 0.6,
+                avoidOverlap: 0.5,
             },
             minVelocity: 0.75,
         },
@@ -1178,13 +1428,87 @@ function createGraph(triples) {
         edges: {
             smooth: { type: 'curvedCW', roundness: 0.2 },
         },
+        layout: {
+            hierarchical: {
+                enabled: false,
+                direction: 'UD',
+                sortMethod: 'directed',
+            },
+        },
     };
 
-    const network = new vis.Network(container, data, options);
+    graphProgressFill.style.width = '90%';
+    
+    if (networkInstance) {
+        networkInstance.destroy();
+    }
+
+    networkInstance = new vis.Network(container, data, options);
+
+    networkInstance.on("doubleClick", function (params) {
+        const nodeId = params.nodes[0];
+        if (!nodeId) return;
+        
+        const entity = nodeNames[nodeId];
+        const children = findChildren(entity, triples, entityLevels);
+        
+        if (expandedNodes.has(entity)) {
+            const hideIds = children.map(c => nodeIds[c]).filter(id => id);
+            networkInstance.hide(hideIds);
+            expandedNodes.delete(entity);
+        } else {
+            const showIds = children.map(c => nodeIds[c]).filter(id => id);
+            networkInstance.show(showIds);
+            expandedNodes.add(entity);
+        }
+    });
+
+    networkInstance.on("stabilized", function () {
+        document.getElementById('graphLoading').style.display = 'none';
+        graphProgressFill.style.width = '100%';
+    });
+
+    graphProgressFill.style.width = '100%';
+}
+
+function resetGraph() {
+    if (networkInstance) {
+        networkInstance.fit({ animation: { duration: 500 } });
+        networkInstance.stabilize();
+    }
+}
+
+function expandAll() {
+    if (networkInstance) {
+        networkInstance.show();
+        expandedNodes.clear();
+        for (const t of currentTriples) {
+            expandedNodes.add(t.subject);
+        }
+    }
+}
+
+function collapseAll() {
+    if (networkInstance && currentTriples.length > 0) {
+        const entityLevels = assignHierarchicalLevels(currentTriples);
+        const hiddenIds = [];
+        
+        for (const t of currentTriples) {
+            for (const entity of [t.subject, t.object]) {
+                if ((entityLevels[entity] || 0) > 1) {
+                    const id = nodeIds[entity];
+                    if (id) hiddenIds.push(id);
+                }
+            }
+        }
+        
+        networkInstance.hide(hiddenIds);
+        expandedNodes.clear();
+    }
 }
 
 async function runDemo() {
-    const demoText = "民主是一种政治制度，其核心特征是人民通过选举代表来参与政治决策。罗伯特·达尔提出了多元民主理论，强调利益集团在民主过程中的重要作用。约瑟夫·熊彼特则认为民主是精英之间的竞争过程。马克斯·韦伯提出了国家理论，迈克尔·曼发展了国家权力双重维度理论。国家权力双重维度理论包含专制权力和基础性权力。国家能力包括征税能力和维持秩序能力。多元主义理论区别于国家中心主义视角。比较政治学包含国家，研究政治过程。";
+    const demoText = "民主是一种政治制度，其核心特征是人民通过选举代表来参与政治决策。罗伯特·达尔提出了多元民主理论，强调利益集团在民主过程中的重要作用。约瑟夫·熊彼特则认为民主是精英之间的竞争过程。马克斯·韦伯提出了国家理论，迈克尔·曼发展了国家权力双重维度理论。国家权力双重维度理论包含专制权力和基础性权力。国家能力包括征税能力和维持秩序能力。多元主义理论区别于国家中心主义视角。比较政治学包含国家，研究政治过程。民主包含选举、代表和决策过程。";
     
     document.getElementById('uploadCard').classList.add('hidden');
     document.getElementById('loadingCard').classList.remove('hidden');
@@ -1222,7 +1546,6 @@ const fileName = document.getElementById('fileName');
 const submitBtn = document.getElementById('submitBtn');
 const uploadForm = document.getElementById('uploadForm');
 
-// 页面加载后检测 PDF 库状态
 window.addEventListener('load', function() {
     const statusEl = document.getElementById('pdfLoadStatus');
     if (typeof pdfjsLib === 'undefined') {
@@ -1247,7 +1570,6 @@ fileInput.addEventListener('change', function() {
         fileName.textContent = `📎 ${file.name} (${sizeKB} KB)`;
         submitBtn.disabled = false;
         
-        // 如果选择了PDF但库未加载，提示用户
         if (file.name.toLowerCase().endsWith('.pdf') && typeof pdfjsLib === 'undefined') {
             alert('PDF解析库未加载，无法解析PDF文件。请将PDF转换为TXT格式后上传，或检查网络连接后刷新页面。');
             fileInput.value = '';
